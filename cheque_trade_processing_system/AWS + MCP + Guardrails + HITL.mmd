@@ -1,0 +1,58 @@
+flowchart TD
+
+%% User Layer
+User[Bank Ops / Back Office UI]
+Auth[AWS Cognito / IAM]
+API[Amazon API Gateway]
+
+User --> Auth --> API
+
+%% Orchestration
+API --> Orchestrator[LangGraph / Step Functions]
+
+%% Async Layer
+Orchestrator <--> Queue[Amazon SQS / EventBridge]
+
+%% Document Processing
+Orchestrator --> S3[(Amazon S3 - Raw Documents)]
+Orchestrator --> Textract[Amazon Textract OCR]
+Orchestrator --> Comprehend[Amazon Comprehend]
+
+%% Multi-Agent System
+Orchestrator --> Agents[Extraction / Validation / Risk / Decision / Audit Agents]
+
+%% Guardrails
+Agents --> Guardrails[Guardrails Layer (PII / Prompt Defense / Output Check)]
+
+%% MCP Layer
+Guardrails --> MCP[MCP Server (ECS / Lambda)]
+
+MCP --> Registry[Tool Registry]
+MCP --> RBAC[AuthZ (IAM Policies)]
+MCP --> Policy[Policy Engine]
+MCP --> Validator[Schema Validator]
+MCP --> MCPLogs[Audit Logger]
+
+%% LLM Layer
+MCP --> LLMGateway[LLM Gateway]
+LLMGateway --> Bedrock[Amazon Bedrock (Claude / Titan)]
+
+%% Core Banking Systems
+MCP --> Core[Core Banking APIs / SWIFT / Trade Systems]
+
+%% Data Layer
+MCP --> RDS[(Amazon RDS - Transactions)]
+MCP --> Vector[(Vector DB - OpenSearch / Pinecone)]
+MCP --> Ledger[(Immutable Logs - QLDB)]
+
+%% Risk Models
+Agents --> Risk[Fraud Detection Models (SageMaker)]
+
+%% Human in Loop
+Agents --> HITL[Human Review UI]
+HITL --> Orchestrator
+
+%% Monitoring
+Agents --> Logs[CloudWatch Logs]
+MCPLogs --> Logs
+Logs --> Monitor[CloudWatch + X-Ray + CloudTrail]

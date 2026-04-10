@@ -1,0 +1,58 @@
+flowchart TD
+
+%% User Layer
+User[Employee UI / Slack / Teams Bot]
+Auth[AWS Cognito / IAM Identity Center]
+API[Amazon API Gateway]
+
+User --> Auth --> API
+
+%% Orchestration
+API --> Orchestrator[LangGraph / Step Functions]
+
+%% Async Layer
+Orchestrator <--> Queue[Amazon SQS / EventBridge]
+
+%% Agents
+Orchestrator --> Router[Router Agent]
+Router --> Agents[Retriever / Answer / Critic / Security Agents]
+
+%% Guardrails
+Agents --> Guardrails[Guardrails Layer (PII / Prompt Defense / Output Validation)]
+
+%% MCP Layer
+Guardrails --> MCP[MCP Server (ECS / Lambda)]
+
+MCP --> Registry[Tool Registry]
+MCP --> RBAC[IAM + RBAC Policies]
+MCP --> Policy[Policy Engine]
+MCP --> Validator[Schema Validator]
+MCP --> MCPLogs[Audit Logger]
+
+%% LLM Layer
+MCP --> LLMGateway[LLM Gateway]
+LLMGateway --> Bedrock[Amazon Bedrock]
+
+%% Enterprise Systems
+MCP --> Systems[SAP / ServiceNow / HRMS APIs]
+
+%% Knowledge Layer
+Agents --> HRDB[(HR Vector DB - OpenSearch)]
+Agents --> ITDB[(IT Vector DB - OpenSearch)]
+Agents --> FINDB[(Finance Vector DB - OpenSearch)]
+
+%% Memory + Cache
+Agents --> Cache[(ElastiCache Redis)]
+Agents --> Memory[(Conversation Memory Store)]
+
+%% Storage
+Agents --> S3[(Amazon S3)]
+
+%% Human in Loop
+Agents --> HITL[Human Review UI]
+HITL --> Orchestrator
+
+%% Monitoring
+Agents --> Logs[CloudWatch Logs]
+MCPLogs --> Logs
+Logs --> Monitor[CloudWatch + X-Ray + CloudTrail]
