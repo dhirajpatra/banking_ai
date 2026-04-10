@@ -1,0 +1,57 @@
+flowchart TD
+
+%% Identity & Entry
+User["User"]
+Auth["Auth"]
+APIM["APIM"]
+
+User --> Auth --> APIM
+
+%% Orchestration
+APIM --> Orchestrator["Orchestrator"]
+
+%% Async/Event Layer
+Orchestrator <--> Queue["Queue"]
+
+%% Multi-Agent System
+Orchestrator --> Agents["Agents"]
+
+%% Document Processing
+Agents --> OCR["OCR"]
+Agents --> Storage["Storage"]
+
+%% Guardrails Layer
+Agents --> Guardrails["Guardrails"]
+
+%% MCP Layer (Expanded)
+Guardrails --> MCP["MCP"]
+
+MCP --> Registry["Registry"]
+MCP --> Policy["Policy"]
+MCP --> RBAC["RBAC"]
+MCP --> Validator["Validator"]
+MCP --> MCPLogs["MCP Logs"]
+
+%% LLM Gateway (Controlled Access)
+MCP --> LLMGateway["LLM Gateway"]
+LLMGateway --> LLM["LLM"]
+
+%% Core Banking Integration
+MCP --> Core["Banking Core"]
+
+%% Data Layer
+MCP --> DB["DB"]
+MCP --> Vector["Vector"]
+MCP --> Ledger["Ledger"]
+
+%% Human-in-the-Loop
+Agents --> HITL["HITL"]
+HITL --> Orchestrator["Orchestrator"]
+
+%% Observability
+Agents --> Audit["Audit Agents"]
+MCPLogs --> Audit["Audit MCP Logs"]
+Audit --> Monitor["Audit Monitor"]
+
+%% Risk / Fraud Signals (Optional ML Models)
+Agents --> RiskModels["Risk Models Agents"]

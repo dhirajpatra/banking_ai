@@ -1,0 +1,58 @@
+flowchart TD
+
+%% Identity & Entry
+User[Employee UI / Teams Bot]
+Auth["Azure AD (Entra ID)"]
+APIM[Azure API Management]
+
+User --> Auth --> APIM
+
+%% Orchestration
+APIM --> Orchestrator[LangGraph Orchestrator]
+
+%% Async Layer
+Orchestrator <--> Queue[Azure Service Bus]
+
+%% Agents
+Orchestrator --> Router[Router Agent]
+Router --> Agents[Retriever / Answer / Critic / Security Agents]
+
+%% Guardrails Layer
+Agents --> Guardrails["Guardrails Layer (PII Masking / Prompt Defense / Output Validation)"]
+
+%% MCP Layer (Expanded)
+Guardrails --> MCP[MCP Server Layer]
+
+MCP --> Registry[Tool Registry]
+MCP --> Policy["Policy Engine (OPA)"]
+MCP --> RBAC[RBAC Enforcement]
+MCP --> Validator[Input/Output Validator]
+MCP --> MCPLogs[Tool Audit Logger]
+
+%% LLM Gateway (Controlled Access)
+MCP --> LLMGateway[LLM Gateway]
+LLMGateway --> LLM[Azure OpenAI / Bedrock]
+
+%% Enterprise Systems via MCP
+MCP --> Systems["Enterprise Systems (SAP / ServiceNow / HRMS)"]
+
+%% Knowledge Layer
+Agents --> HRDB[(HR Vector DB)]
+Agents --> ITDB[(IT Vector DB)]
+Agents --> FINDB[(Finance Vector DB)]
+
+%% Memory + Cache
+Agents --> Cache[(Redis Cache - Short Term)]
+Agents --> Memory[(Conversation Memory - Long Term)]
+
+%% Storage
+Agents --> Storage[(Azure Blob Storage)]
+
+%% Human in Loop
+Agents --> HITL[Human-in-the-Loop UI]
+HITL --> Orchestrator
+
+%% Observability
+Agents --> Audit["Audit Logs (Immutable)"]
+MCPLogs --> Audit
+Audit --> Monitor[Azure Monitor + App Insights]
